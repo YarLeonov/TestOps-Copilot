@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: testops_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: testops
+      POSTGRES_USER: testops
+      POSTGRES_PASSWORD: testops
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    container_name: testops_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: testops_frontend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      VITE_BACKEND_URL: ${VITE_BACKEND_URL}
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+
+volumes:
+  db_data:
